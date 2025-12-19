@@ -1,0 +1,68 @@
+name: Terraform Apply
+
+on:
+  workflow_call:
+    inputs:
+      tf_version:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      JWT_SECRET:
+        required: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install Node.js dependencies for login_lambda
+        working-directory: ./lambdas/login_lambda
+        run: npm install
+
+      - name: Install Node.js dependencies for auth_lambda
+        working-directory: ./lambdas/auth_lambda
+        run: npm install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ inputs.tf_version }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Get ALB DNS from SSM
+        run: |
+          ALB_DNS=$(aws ssm get-parameter \
+            --name "/fastfood/alb/dns" \
+            --query "Parameter.Value" \
+            --output text)
+
+          echo "TF_VAR_alb_dns_name=$ALB_DNS" >> $GITHUB_ENV
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+        run: terraform apply -input=false -auto-approve
+
+
