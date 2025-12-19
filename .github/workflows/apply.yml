@@ -51,10 +51,18 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Get ALB DNS from SSM
+        run: |
+          ALB_DNS=$(aws ssm get-parameter \
+            --name "/fastfood/alb/dns" \
+            --query "Parameter.Value" \
+            --output text)
+
+          echo "TF_VAR_alb_dns_name=$ALB_DNS" >> $GITHUB_ENV
+
       - name: Terraform Apply
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-        run: |
-          terraform apply \
-           -input=false \
-           -auto-approve
+        run: terraform apply -input=false -auto-approve
+
+

@@ -33,18 +33,19 @@ module "lambda_login" {
 }
 
 module "api_gateway" {
-  source                     = "./modules/api-gateway"
-  name                       = var.name
+  source       = "./modules/api-gateway"
+  name         = var.name
+  region       = var.region
+  alb_dns_name = var.alb_dns_name
+
   lambda_function_login_name = module.lambda_login.function_name
   lambda_function_login_arn  = module.lambda_login.function_arn
   lambda_function_auth_name  = module.lambda_auth.function_name
   lambda_function_auth_arn   = module.lambda_auth.function_arn
-  region                     = var.region
-
-  alb_dns_name = data.aws_lb.alb_ingress.dns_name
 
   tags = var.tags
 }
+
 
 module "secrets" {
   source     = "./modules/secrets-manager"
