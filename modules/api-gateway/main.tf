@@ -139,7 +139,7 @@ resource "aws_api_gateway_integration" "proxy_integration" {
 # /v1/payments
 resource "aws_api_gateway_resource" "payments" {
   rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id   = aws_api_gateway_resource.orders.id  # já existe /v1
+  parent_id   = aws_api_gateway_resource.orders.id # já existe /v1
   path_part   = "payments"
 }
 
@@ -237,7 +237,7 @@ resource "aws_api_gateway_integration" "payments_orders_get_integration" {
 # /v1/products
 resource "aws_api_gateway_resource" "products" {
   rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id   = aws_api_gateway_resource.orders.id  # já existe /v1
+  parent_id   = aws_api_gateway_resource.orders.id # já existe /v1
   path_part   = "products"
 }
 
@@ -418,7 +418,7 @@ resource "aws_api_gateway_integration" "products_release_patch_integration" {
 # /v1/customers
 resource "aws_api_gateway_resource" "customers" {
   rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id   = aws_api_gateway_resource.orders.id  # já existe /v1
+  parent_id   = aws_api_gateway_resource.orders.id # já existe /v1
   path_part   = "customers"
 }
 
@@ -477,7 +477,7 @@ resource "aws_api_gateway_integration" "customers_get_integration" {
 # POST /v1/orders 
 resource "aws_api_gateway_method" "orders_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
-  resource_id   = aws_api_gateway_resource.orders_customer.id  # /v1/orders
+  resource_id   = aws_api_gateway_resource.orders_customer.id # /v1/orders
   http_method   = "POST"
   authorization = "CUSTOM"
   authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
@@ -495,7 +495,7 @@ resource "aws_api_gateway_integration" "orders_post_integration" {
 # GET /v1/orders/active
 resource "aws_api_gateway_resource" "orders_active" {
   rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id   = aws_api_gateway_resource.orders_customer.id  # /v1/orders
+  parent_id   = aws_api_gateway_resource.orders_customer.id # /v1/orders
   path_part   = "active"
 }
 
@@ -660,12 +660,12 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.login_integration,
     aws_api_gateway_integration.orders_get_integration,
     aws_api_gateway_integration.proxy_integration,
-    
+
     # Payments
     aws_api_gateway_integration.payments_post_integration,
     aws_api_gateway_integration.payments_get_integration,
     aws_api_gateway_integration.payments_orders_get_integration,
-    
+
     # Products
     aws_api_gateway_integration.products_get_integration,
     aws_api_gateway_integration.products_post_integration,
@@ -674,11 +674,11 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.products_reserve_patch_integration,
     aws_api_gateway_integration.products_confirm_patch_integration,
     aws_api_gateway_integration.products_release_patch_integration,
-    
+
     # Customers
     aws_api_gateway_integration.customers_post_integration,
     aws_api_gateway_integration.customers_get_integration,
-    
+
     # Orders
     aws_api_gateway_integration.orders_post_integration,
     aws_api_gateway_integration.orders_active_get_integration,
