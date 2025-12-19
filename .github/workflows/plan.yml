@@ -4,11 +4,9 @@ on:
   workflow_call:
     inputs:
       tf_version:
-        description: "Terraform version"
         required: true
         type: string
       aws_region:
-        description: "AWS region"
         required: true
         type: string
     secrets:
@@ -22,8 +20,10 @@ on:
 jobs:
   plan:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -39,8 +39,16 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Get ALB DNS from SSM
+        run: |
+          ALB_DNS=$(aws ssm get-parameter \
+            --name "/fastfood/alb/dns" \
+            --query "Parameter.Value" \
+            --output text)
+
+          echo "TF_VAR_alb_dns_name=$ALB_DNS" >> $GITHUB_ENV
+
       - name: Terraform Plan
-        id: plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
         run: terraform plan -input=false
