@@ -14,22 +14,9 @@ variable "lb_port" {
   default     = 8080
 }
 
-variable "catalog_port" {
-  type        = number
-  description = "Port for Catalog MS"
-  default     = 8080
-}
-
-variable "order_port" {
-  type        = number
-  description = "Port for Order MS"
-  default     = 8081
-}
-
-variable "payment_port" {
-  type        = number
-  description = "Port for Payment MS"
-  default     = 8082
+variable "alb_dns_name" {
+  type        = string
+  description = "DNS of the ALB created from Ingress"
 }
 
 variable "lambda_function_login_name" {
@@ -41,8 +28,6 @@ variable "lambda_function_login_arn" {
   type        = string
   description = "ARN of the Lambda function to be integrated"
 }
-
-
 
 variable "lambda_function_auth_name" {
   type        = string

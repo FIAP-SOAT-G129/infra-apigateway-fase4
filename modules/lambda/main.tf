@@ -73,8 +73,6 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = {
       JWT_SECRET_NAME = var.jwt_secret_name
-      NLB_DNS_NAME    = data.aws_lb.internal_nlb.dns_name
-      NLB_PORT        = var.lb_port
       SECRET_NAME     = "fastfood-jtw-secret"
       REGION          = var.region
     }

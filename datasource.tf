@@ -6,3 +6,10 @@ data "terraform_remote_state" "foundation" {
     region = "us-east-1"
   }
 }
+
+data "aws_lb" "alb_ingress" {
+  tags = {
+    "kubernetes.io/ingress-name" = "fastfood-ingress"
+  }
+}
+

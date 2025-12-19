@@ -1,6 +1,6 @@
 resource "aws_security_group" "lambda_sg" {
   name        = "${var.name}-lambda-sg"
-  description = "Security group for Lambda to access internal NLB"
+  description = "Security group for Lambda to access internal ALB"
   vpc_id      = var.vpc_id
 
   egress {

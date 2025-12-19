@@ -40,10 +40,10 @@ module "api_gateway" {
   lambda_function_auth_name  = module.lambda_auth.function_name
   lambda_function_auth_arn   = module.lambda_auth.function_arn
   region                     = var.region
-  catalog_port               = 8080
-  order_port                 = 8081
-  payment_port               = 8082
-  tags                       = var.tags
+
+  alb_dns_name = data.aws_lb.alb_ingress.dns_name
+
+  tags = var.tags
 }
 
 module "secrets" {

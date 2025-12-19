@@ -53,7 +53,7 @@ resource "aws_lambda_permission" "login_permission" {
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
 
-# Rota privada: GET /v1/orders/customers/{customerId} (EKS via NLB)
+# Rota privada: GET /v1/orders/customers/{customerId} (EKS via ALB)
 resource "aws_api_gateway_resource" "orders" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id   = aws_api_gateway_rest_api.this.root_resource_id
@@ -96,7 +96,7 @@ resource "aws_api_gateway_integration" "orders_get_integration" {
   http_method             = aws_api_gateway_method.orders_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.lb_port}/v1/orders/customers/{customerId}"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/customers/{customerId}"
 
   request_parameters = {
     "integration.request.path.customerId" = "method.request.path.customerId"
@@ -127,7 +127,7 @@ resource "aws_api_gateway_integration" "proxy_integration" {
   http_method             = aws_api_gateway_method.proxy_any.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.lb_port}/{proxy}"
+  uri                     = "http://${var.alb_dns_name}/{proxy}"
 
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
@@ -158,7 +158,7 @@ resource "aws_api_gateway_integration" "payments_post_integration" {
   http_method             = aws_api_gateway_method.payments_post.http_method
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.payment_port}/v1/payments/"
+  uri                     = "http://${var.alb_dns_name}/v1/payments"
 }
 
 # GET /v1/payments/{id}
@@ -186,7 +186,7 @@ resource "aws_api_gateway_integration" "payments_get_integration" {
   http_method             = aws_api_gateway_method.payments_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.payment_port}/v1/payments/{id}"
+  uri                     = "http://${var.alb_dns_name}/v1/payments/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -225,7 +225,7 @@ resource "aws_api_gateway_integration" "payments_orders_get_integration" {
   http_method             = aws_api_gateway_method.payments_orders_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.payment_port}/v1/payments/orders/{id}"
+  uri                     = "http://${var.alb_dns_name}/v1/payments/orders/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -266,7 +266,7 @@ resource "aws_api_gateway_integration" "products_get_integration" {
   http_method             = aws_api_gateway_method.products_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/{id}"
+  uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -288,7 +288,7 @@ resource "aws_api_gateway_integration" "products_post_integration" {
   http_method             = aws_api_gateway_method.products_post.http_method
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products"
+  uri                     = "http://${var.alb_dns_name}/v1/products"
 }
 
 # PUT /v1/products/{id}
@@ -310,7 +310,7 @@ resource "aws_api_gateway_integration" "products_put_integration" {
   http_method             = aws_api_gateway_method.products_put.http_method
   integration_http_method = "PUT"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/{id}"
+  uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -336,7 +336,7 @@ resource "aws_api_gateway_integration" "products_delete_integration" {
   http_method             = aws_api_gateway_method.products_delete.http_method
   integration_http_method = "DELETE"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/{id}"
+  uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -364,7 +364,7 @@ resource "aws_api_gateway_integration" "products_reserve_patch_integration" {
   http_method             = aws_api_gateway_method.products_reserve_patch.http_method
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/reserve"
+  uri                     = "http://${var.alb_dns_name}/v1/products/reserve"
 }
 
 # PATCH /v1/products/confirm
@@ -388,7 +388,7 @@ resource "aws_api_gateway_integration" "products_confirm_patch_integration" {
   http_method             = aws_api_gateway_method.products_confirm_patch.http_method
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/confirm"
+  uri                     = "http://${var.alb_dns_name}/v1/products/confirm"
 }
 
 # PATCH /v1/products/release
@@ -412,7 +412,7 @@ resource "aws_api_gateway_integration" "products_release_patch_integration" {
   http_method             = aws_api_gateway_method.products_release_patch.http_method
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/products/release"
+  uri                     = "http://${var.alb_dns_name}/v1/products/release"
 }
 
 # /v1/customers
@@ -437,7 +437,7 @@ resource "aws_api_gateway_integration" "customers_post_integration" {
   http_method             = aws_api_gateway_method.customers_post.http_method
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/customers"
+  uri                     = "http://${var.alb_dns_name}/v1/customers"
 }
 
 # GET /v1/customers/{cpf}
@@ -465,7 +465,7 @@ resource "aws_api_gateway_integration" "customers_get_integration" {
   http_method             = aws_api_gateway_method.customers_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.catalog_port}/v1/customers/{cpf}"
+  uri                     = "http://${var.alb_dns_name}/v1/customers/{cpf}"
 
   request_parameters = {
     "integration.request.path.cpf" = "method.request.path.cpf"
@@ -489,7 +489,7 @@ resource "aws_api_gateway_integration" "orders_post_integration" {
   http_method             = aws_api_gateway_method.orders_post.http_method
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders"
+  uri                     = "http://${var.alb_dns_name}/v1/orders"
 }
 
 # GET /v1/orders/active
@@ -513,7 +513,7 @@ resource "aws_api_gateway_integration" "orders_active_get_integration" {
   http_method             = aws_api_gateway_method.orders_active_get.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders/active"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/active"
 }
 
 # /v1/orders/{orderId}
@@ -549,7 +549,7 @@ resource "aws_api_gateway_integration" "orders_combos_post_integration" {
   http_method             = aws_api_gateway_method.orders_combos_post.http_method
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders/{orderId}/combos"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos"
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
@@ -583,7 +583,7 @@ resource "aws_api_gateway_integration" "orders_combos_put_integration" {
   http_method             = aws_api_gateway_method.orders_combos_put.http_method
   integration_http_method = "PUT"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders/{orderId}/combos/{comboId}"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
@@ -611,7 +611,7 @@ resource "aws_api_gateway_integration" "orders_combos_delete_integration" {
   http_method             = aws_api_gateway_method.orders_combos_delete.http_method
   integration_http_method = "DELETE"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders/{orderId}/combos/{comboId}"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
@@ -626,7 +626,7 @@ resource "aws_api_gateway_resource" "orders_payment_confirmed" {
   path_part   = "payment-confirmed"
 }
 
-# PATCH /v1/orders/{id}/payment-confirmed
+# PATCH /v1/orders/{orderId}/payment-confirmed
 resource "aws_api_gateway_method" "orders_payment_confirmed_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_payment_confirmed.id
@@ -645,7 +645,7 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
   http_method             = aws_api_gateway_method.orders_payment_confirmed_patch.http_method
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.internal_nlb.dns_name}:${var.order_port}/v1/orders/{orderId}/payment-confirmed"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/payment-confirmed"
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"

@@ -18,3 +18,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "alb_dns_name" {
+  description = "DNS of the ALB created from Ingress"
+  type        = string
+}
