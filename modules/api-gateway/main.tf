@@ -652,7 +652,7 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
   }
 }
 
-# Deployment e Stage
+# Deployment and Stage
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
