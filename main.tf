@@ -36,7 +36,7 @@ module "api_gateway" {
   source       = "./modules/api-gateway"
   name         = var.name
   region       = var.region
-  alb_dns_name = var.alb_dns_name
+  alb_dns_name = data.aws_lb.fastfood_alb.dns_name
 
   lambda_function_login_name = module.lambda_login.function_name
   lambda_function_login_arn  = module.lambda_login.function_arn
