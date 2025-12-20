@@ -6,3 +6,7 @@ data "terraform_remote_state" "foundation" {
     region = "us-east-1"
   }
 }
+
+data "aws_lb" "fastfood_alb" {
+  name = "fastfood-infra-alb"
+}

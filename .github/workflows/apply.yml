@@ -1,24 +1,23 @@
-name: Terraform Apply
+name: Terraform Apply Pipeline
+
+concurrency:
+  group: terraform-apply-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
-  workflow_call:
-    inputs:
-      tf_version:
-        required: true
-        type: string
-      aws_region:
-        required: true
-        type: string
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      JWT_SECRET:
-        required: true
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
-  apply:
+  fmt-validate:
+    uses: ./.github/workflows/fmt-validate.yml
+    with:
+      tf_version: ${{ vars.TF_VERSION }}
+
+  plan:
+    needs: fmt-validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{ vars.NODE_VERSION }}
 
       - name: Install Node.js dependencies for login_lambda
         working-directory: ./lambdas/login_lambda
@@ -41,28 +40,61 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ inputs.tf_version }}
+          terraform_version: ${{ vars.TF_VERSION }}
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -input=false
 
-      - name: Get ALB DNS from SSM
-        run: |
-          ALB_DNS=$(aws ssm get-parameter \
-            --name "/fastfood/alb/dns" \
-            --query "Parameter.Value" \
-            --output text)
-
-          echo "TF_VAR_alb_dns_name=$ALB_DNS" >> $GITHUB_ENV
-
-      - name: Terraform Apply
+      - name: Terraform Plan
+        id: plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-        run: terraform apply -input=false -auto-approve
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan
 
+      - name: Upload Terraform Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
 
+  apply:
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+
+      - name: Download Terraform Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            tfplan
