@@ -35,6 +35,18 @@ jobs:
         working-directory: ./lambdas/auth_lambda
         run: npm install
 
+      - name: Create Lambda ZIP packages
+        run: |
+          mkdir -p modules/lambda/zips
+
+          cd lambdas/login_lambda
+          zip -r ../../modules/lambda/zips/fastfood-login-lambda.zip .
+          cd -
+
+          cd lambdas/auth_lambda
+          zip -r ../../modules/lambda/zips/fastfood-auth-lambda.zip .
+          cd -
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
