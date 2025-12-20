@@ -82,8 +82,7 @@ resource "aws_api_gateway_method" "orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer_param.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.customerId" = true
@@ -148,8 +147,7 @@ resource "aws_api_gateway_method" "payments_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "payments_post_integration" {
@@ -172,8 +170,7 @@ resource "aws_api_gateway_method" "payments_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -211,8 +208,7 @@ resource "aws_api_gateway_method" "payments_orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_orders_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -252,8 +248,7 @@ resource "aws_api_gateway_method" "products_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -278,8 +273,7 @@ resource "aws_api_gateway_method" "products_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "products_post_integration" {
@@ -296,8 +290,7 @@ resource "aws_api_gateway_method" "products_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "PUT"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -322,8 +315,7 @@ resource "aws_api_gateway_method" "products_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "DELETE"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -354,8 +346,7 @@ resource "aws_api_gateway_method" "products_reserve_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_reserve.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "products_reserve_patch_integration" {
@@ -378,8 +369,7 @@ resource "aws_api_gateway_method" "products_confirm_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_confirm.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "products_confirm_patch_integration" {
@@ -402,8 +392,7 @@ resource "aws_api_gateway_method" "products_release_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_release.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "products_release_patch_integration" {
@@ -414,6 +403,45 @@ resource "aws_api_gateway_integration" "products_release_patch_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/release"
 }
+
+resource "aws_api_gateway_resource" "categories" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders.id # /v1
+  path_part   = "categories"
+}
+
+resource "aws_api_gateway_method" "categories_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.categories.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "categories_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.categories.id
+  http_method             = aws_api_gateway_method.categories_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/categories"
+}
+
+resource "aws_api_gateway_method" "categories_post" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.categories.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "categories_post_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.categories.id
+  http_method             = aws_api_gateway_method.categories_post.http_method
+  integration_http_method = "POST"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/categories"
+}
+
 
 # /v1/customers
 resource "aws_api_gateway_resource" "customers" {
@@ -427,8 +455,7 @@ resource "aws_api_gateway_method" "customers_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "customers_post_integration" {
@@ -451,8 +478,7 @@ resource "aws_api_gateway_method" "customers_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers_cpf.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.cpf" = true
@@ -479,8 +505,7 @@ resource "aws_api_gateway_method" "orders_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer.id # /v1/orders
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "orders_post_integration" {
@@ -503,8 +528,7 @@ resource "aws_api_gateway_method" "orders_active_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_active.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "orders_active_get_integration" {
@@ -535,8 +559,7 @@ resource "aws_api_gateway_method" "orders_combos_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -568,8 +591,7 @@ resource "aws_api_gateway_method" "orders_combos_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "PUT"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -596,8 +618,7 @@ resource "aws_api_gateway_method" "orders_combos_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "DELETE"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -631,8 +652,7 @@ resource "aws_api_gateway_method" "orders_payment_confirmed_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_payment_confirmed.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -678,6 +698,11 @@ resource "aws_api_gateway_deployment" "this" {
     # Customers
     aws_api_gateway_integration.customers_post_integration,
     aws_api_gateway_integration.customers_get_integration,
+
+    # Categories
+    aws_api_gateway_integration.categories_get_integration,
+    aws_api_gateway_integration.categories_post_integration,
+
 
     # Orders
     aws_api_gateway_integration.orders_post_integration,
