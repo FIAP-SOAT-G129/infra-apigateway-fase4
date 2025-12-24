@@ -13,55 +13,13 @@ const getSecret = async (name) => {
   }
 }
 
-const fetchCustomerByCpf = async (cpf) => {
-  console.log('fetchCustomerByCpf', cpf)
-
-  if (!cpf || cpf.length !== 11) {
-    return null
-  }
-
-  try {
-    const nlbDnsName = process.env.NLB_DNS_NAME
-    const nlbPort = process.env.NLB_PORT || "30080"
-
-    if (!nlbDnsName) {
-      console.error('NLB_DNS_NAME environment variable is not set')
-      return null
-    }
-
-    const url = `http://${nlbDnsName}:${nlbPort}/v1/customers/${cpf}`
-    console.log('Making request to:', url)
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`)
-      return null
-    }
-
-    const customer = await response.json()
-    console.log('Customer data received:', customer)
-
-    return customer
-
-  } catch (error) {
-    console.error('Error fetching customer:', error.message)
-    return null
-  }
-}
-
 exports.handler = async (event) => {
   try {
     const body = event.isBase64Encoded ?
       Buffer.from(event.body, 'base64').toString() :
       event.body
 
-    const { cpf } = JSON.parse(body || "{}")
+    const { cpf, role } = JSON.parse(body || "{}")
 
     if (!cpf) {
       return {
@@ -77,18 +35,30 @@ exports.handler = async (event) => {
       }
     }
 
-    const customer = await fetchCustomerByCpf(cpf)
-
-    if (!customer) {
+    if (!role) {
       return {
-        statusCode: 404,
+        statusCode: 400,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*"
         },
         body: JSON.stringify({
-          error: "Customer não encontrado",
-          message: `Nenhum customer encontrado para o CPF: ${cpf}`
+          error: "Role é obrigatório",
+          message: "Campo 'role' deve ser fornecido no body da requisição"
+        })
+      }
+    }
+
+    if (role !== "customer" && role !== "employee") {
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        body: JSON.stringify({
+          error: "Role inválido",
+          message: "Campo 'role' deve ser 'customer' ou 'employee'"
         })
       }
     }
@@ -97,10 +67,10 @@ exports.handler = async (event) => {
 
     const token = jwt.sign(
       {
-        sub: customer.id,
-        cpf: customer.cpf,
-        name: customer.name,
-        email: customer.email,
+        sub: cpf,
+        cpf: cpf,
+        role: role,
+        name: null,
         iat: Math.floor(Date.now() / 1000)
       },
       secret,
@@ -118,11 +88,8 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         token,
-        customer: {
-          id: customer.id,
-          name: customer.name,
-          cpf: customer.cpf
-        },
+        cpf: cpf,
+        role: role,
         expiresIn: "1h"
       })
     }
@@ -130,7 +97,6 @@ exports.handler = async (event) => {
     return response
 
   } catch (err) {
-
     return {
       statusCode: 500,
       headers: {

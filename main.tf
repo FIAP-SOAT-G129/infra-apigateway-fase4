@@ -1,3 +1,10 @@
+locals {
+  route_roles = {
+    "GET:/v1/orders/*" = "customer"
+    "GET:/v1/products/*" = "employee"
+  }
+}
+
 module "security_group" {
   source         = "./modules/security-group"
   name           = var.name
@@ -15,6 +22,7 @@ module "lambda_auth" {
   security_groups = [module.security_group.lambda_sg_id]
   source_dir      = "${path.root}/lambdas/auth_lambda"
   jwt_secret_name = module.secrets.secret_name
+  route_roles     = local.route_roles
   tags            = var.tags
   region          = var.region
 }
