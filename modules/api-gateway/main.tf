@@ -415,6 +415,45 @@ resource "aws_api_gateway_integration" "products_release_patch_integration" {
   uri                     = "http://${var.alb_dns_name}/v1/products/release"
 }
 
+resource "aws_api_gateway_resource" "categories" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders.id # /v1
+  path_part   = "categories"
+}
+
+resource "aws_api_gateway_method" "categories_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.categories.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "categories_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.categories.id
+  http_method             = aws_api_gateway_method.categories_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/categories"
+}
+
+resource "aws_api_gateway_method" "categories_post" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.categories.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "categories_post_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.categories.id
+  http_method             = aws_api_gateway_method.categories_post.http_method
+  integration_http_method = "POST"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/categories"
+}
+
+
 # /v1/customers
 resource "aws_api_gateway_resource" "customers" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -678,6 +717,11 @@ resource "aws_api_gateway_deployment" "this" {
     # Customers
     aws_api_gateway_integration.customers_post_integration,
     aws_api_gateway_integration.customers_get_integration,
+
+    # Categories
+    aws_api_gateway_integration.categories_get_integration,
+    aws_api_gateway_integration.categories_post_integration,
+
 
     # Orders
     aws_api_gateway_integration.orders_post_integration,
