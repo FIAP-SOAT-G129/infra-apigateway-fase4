@@ -51,7 +51,8 @@ module "api_gateway" {
   lambda_function_auth_name  = module.lambda_auth.function_name
   lambda_function_auth_arn   = module.lambda_auth.function_arn
 
-  tags = var.tags
+  route_roles = local.route_roles
+  tags        = var.tags
 }
 
 

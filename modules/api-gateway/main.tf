@@ -82,8 +82,8 @@ resource "aws_api_gateway_method" "orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer_param.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.customerId" = true
@@ -148,8 +148,8 @@ resource "aws_api_gateway_method" "payments_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "POST:/v1/payments", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/payments", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "payments_post_integration" {
@@ -172,8 +172,8 @@ resource "aws_api_gateway_method" "payments_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/payments/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/payments/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -211,8 +211,8 @@ resource "aws_api_gateway_method" "payments_orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_orders_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/payments/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/payments/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -252,8 +252,8 @@ resource "aws_api_gateway_method" "products_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -278,8 +278,8 @@ resource "aws_api_gateway_method" "products_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "POST:/v1/products", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/products", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_post_integration" {
@@ -296,8 +296,8 @@ resource "aws_api_gateway_method" "products_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "PUT"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PUT:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PUT:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -322,8 +322,8 @@ resource "aws_api_gateway_method" "products_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "DELETE"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "DELETE:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "DELETE:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -354,8 +354,8 @@ resource "aws_api_gateway_method" "products_reserve_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_reserve.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/reserve", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/reserve", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_reserve_patch_integration" {
@@ -378,8 +378,8 @@ resource "aws_api_gateway_method" "products_confirm_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_confirm.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/confirm", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/confirm", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_confirm_patch_integration" {
@@ -402,8 +402,8 @@ resource "aws_api_gateway_method" "products_release_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_release.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/release", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/release", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_release_patch_integration" {
@@ -427,8 +427,8 @@ resource "aws_api_gateway_method" "customers_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "POST:/v1/customers", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/customers", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "customers_post_integration" {
@@ -451,8 +451,8 @@ resource "aws_api_gateway_method" "customers_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers_cpf.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/customers/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/customers/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.cpf" = true
@@ -479,8 +479,8 @@ resource "aws_api_gateway_method" "orders_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer.id # /v1/orders
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "POST:/v1/orders", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/orders", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "orders_post_integration" {
@@ -503,8 +503,8 @@ resource "aws_api_gateway_method" "orders_active_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_active.id
   http_method   = "GET"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "GET:/v1/orders/active", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/active", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "orders_active_get_integration" {
@@ -535,8 +535,8 @@ resource "aws_api_gateway_method" "orders_combos_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos.id
   http_method   = "POST"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "POST:/v1/orders/*/combos", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/orders/*/combos", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -568,8 +568,8 @@ resource "aws_api_gateway_method" "orders_combos_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "PUT"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PUT:/v1/orders/*/combos/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PUT:/v1/orders/*/combos/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -596,8 +596,8 @@ resource "aws_api_gateway_method" "orders_combos_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "DELETE"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "DELETE:/v1/orders/*/combos/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "DELETE:/v1/orders/*/combos/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -631,8 +631,8 @@ resource "aws_api_gateway_method" "orders_payment_confirmed_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_payment_confirmed.id
   http_method   = "PATCH"
-  authorization = "CUSTOM"
-  authorizer_id = aws_api_gateway_authorizer.lambda_auth.id
+  authorization = lookup(var.route_roles, "PATCH:/v1/orders/*/payment-confirmed", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/orders/*/payment-confirmed", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
