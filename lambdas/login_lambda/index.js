@@ -19,7 +19,7 @@ exports.handler = async (event) => {
       Buffer.from(event.body, 'base64').toString() :
       event.body
 
-    const { cpf, role } = JSON.parse(body || "{}")
+    const { cpf, role, name } = JSON.parse(body || "{}")
 
     if (!cpf) {
       return {
@@ -67,10 +67,8 @@ exports.handler = async (event) => {
 
     const token = jwt.sign(
       {
+        cpf, role, name,
         sub: cpf,
-        cpf: cpf,
-        role: role,
-        name: null,
         iat: Math.floor(Date.now() / 1000)
       },
       secret,
