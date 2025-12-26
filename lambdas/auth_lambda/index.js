@@ -90,6 +90,7 @@ const getRouteKey = (method, path) => {
 }
 
 const getRequiredRole = (method, path, routeRoles) => {
+  console.log("getRequiredRole", method, " - ", path, " - ", routeRoles)
   if (!routeRoles || Object.keys(routeRoles).length === 0) {
     return null
   }
@@ -141,6 +142,8 @@ exports.handler = async (event) => {
 
     const secret = await getSecret(process.env.JWT_SECRET_NAME)
     const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] })
+    console.log('token', token)
+    console.log('decoded', decoded)
 
     const userRole = decoded.role
     if (!userRole) {
@@ -159,7 +162,8 @@ exports.handler = async (event) => {
     const { method, path } = parseMethodArn(event.methodArn)
 
     const requiredRole = getRequiredRole(method, path, routeRoles)
-
+    console.log('requiredRole', requiredRole)
+    console.log('userRole', userRole, " - ", requiredRole)
     if (requiredRole && requiredRole !== userRole) {
       console.log(`Access denied: Route requires '${requiredRole}' but user has '${userRole}'`)
       throw new Error('Unauthorized - Insufficient permissions')
