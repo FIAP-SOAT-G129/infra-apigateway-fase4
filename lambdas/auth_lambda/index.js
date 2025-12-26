@@ -64,8 +64,10 @@ const getToken = (event) => {
 const parseMethodArn = (methodArn) => {
   const arnParts = methodArn.split(':')
   const apiGatewayArn = arnParts[5].split('/')
-  const method = apiGatewayArn[1]
-  const path = '/' + apiGatewayArn.slice(2).join('/')
+  // Format: arn:aws:execute-api:region:account:api-id/stage/method/path
+  // apiGatewayArn = [api-id, stage, method, path, segments...]
+  const method = apiGatewayArn[2]
+  const path = '/' + apiGatewayArn.slice(3).join('/')
   return { method, path }
 }
 
@@ -105,6 +107,9 @@ const getRequiredRole = (method, path, routeRoles) => {
     return routeRoles[normalizedKey]
   }
 
+  // Normalize the path for pattern matching
+  const normalizedPath = normalizePath(path)
+  
   for (const [routePattern, requiredRole] of Object.entries(routeRoles)) {
     const [patternMethod, patternPath] = routePattern.split(':')
     
@@ -112,18 +117,27 @@ const getRequiredRole = (method, path, routeRoles) => {
       continue
     }
 
-    const regexPattern = patternPath
-      .replace(/\*/g, '[^/]*')  
-      .replace(/\//g, '\\/')
-    
+    // Check if pattern ends with /* for prefix matching
     if (patternPath.endsWith('/*')) {
-      const prefix = patternPath.slice(0, -2) 
-      if (path.startsWith(prefix + '/')) {
+      const prefix = patternPath.slice(0, -2) // Remove '/*'
+      const normalizedPrefix = normalizePath(prefix)
+      // Check if normalized path starts with normalized prefix followed by /
+      if (normalizedPath.startsWith(normalizedPrefix + '/') || normalizedPath === normalizedPrefix) {
         return requiredRole
       }
     } else {
+      // For exact or regex matching, normalize the pattern path too
+      const normalizedPatternPath = normalizePath(patternPath)
+      if (normalizedPath === normalizedPatternPath) {
+        return requiredRole
+      }
+      
+      // Also try regex matching with the original pattern
+      const regexPattern = patternPath
+        .replace(/\*/g, '[^/]*')  
+        .replace(/\//g, '\\/')
       const regex = new RegExp(`^${regexPattern}$`)
-      if (regex.test(path)) {
+      if (regex.test(path) || regex.test(normalizedPath)) {
         return requiredRole
       }
     }
