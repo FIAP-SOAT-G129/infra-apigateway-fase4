@@ -75,7 +75,7 @@ resource "aws_lambda_function" "this" {
       JWT_SECRET_NAME = var.jwt_secret_name
       SECRET_NAME     = "fastfood-jtw-secret"
       REGION          = var.region
-    }, length(var.route_roles) > 0 ? {
+      }, length(var.route_roles) > 0 ? {
       ROUTE_ROLES = jsonencode(var.route_roles)
     } : {})
   }
