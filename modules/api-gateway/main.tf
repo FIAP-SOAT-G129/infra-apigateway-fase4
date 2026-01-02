@@ -103,6 +103,182 @@ resource "aws_api_gateway_integration" "orders_get_integration" {
   }
 }
 
+# HEALTH CHECKS
+
+# Catalog Health Check
+# /catalog-health/v1/health
+resource "aws_api_gateway_resource" "catalog_health" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "catalog-health"
+}
+
+resource "aws_api_gateway_resource" "catalog_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "catalog_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "catalog_health_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.catalog_health_path.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "catalog_health_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.catalog_health_path.id
+  http_method             = aws_api_gateway_method.catalog_health_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health"
+}
+
+resource "aws_api_gateway_resource" "catalog_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "catalog_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.catalog_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "catalog_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.catalog_health_db.id
+  http_method             = aws_api_gateway_method.catalog_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health/db"
+}
+
+# Orders Health Check
+# /orders-health/v1/health
+resource "aws_api_gateway_resource" "orders_health" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "orders-health"
+}
+
+resource "aws_api_gateway_resource" "orders_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "orders_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "orders_health_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_health_path.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "orders_health_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_health_path.id
+  http_method             = aws_api_gateway_method.orders_health_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/orders-health/v1/health"
+}
+
+resource "aws_api_gateway_resource" "orders_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "orders_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "orders_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_health_db.id
+  http_method             = aws_api_gateway_method.orders_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/orders-health/v1/health/db"
+}
+
+# Payments Health Check
+# /payments-health/v1/health
+resource "aws_api_gateway_resource" "payments_health" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "payments-health"
+}
+
+resource "aws_api_gateway_resource" "payments_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "payments_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "payments_health_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.payments_health_path.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "payments_health_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.payments_health_path.id
+  http_method             = aws_api_gateway_method.payments_health_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/payments-health/v1/health"
+}
+
+resource "aws_api_gateway_resource" "payments_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "payments_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.payments_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "payments_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.payments_health_db.id
+  http_method             = aws_api_gateway_method.payments_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/payments-health/v1/health/db"
+}
+
 # Proxy público genérico: ANY /{proxy+}
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -699,6 +875,14 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.login_integration,
     aws_api_gateway_integration.orders_get_integration,
     aws_api_gateway_integration.proxy_integration,
+
+    # Health Checks
+    aws_api_gateway_integration.catalog_health_get_integration,
+    aws_api_gateway_integration.catalog_health_db_get_integration,
+    aws_api_gateway_integration.orders_health_get_integration,
+    aws_api_gateway_integration.orders_health_db_get_integration,
+    aws_api_gateway_integration.payments_health_get_integration,
+    aws_api_gateway_integration.payments_health_db_get_integration,
 
     # Payments
     aws_api_gateway_integration.payments_post_integration,
