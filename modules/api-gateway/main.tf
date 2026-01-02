@@ -379,7 +379,7 @@ resource "aws_api_gateway_integration" "payments_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/{id}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -421,7 +421,7 @@ resource "aws_api_gateway_integration" "payments_orders_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/orders/{id}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -465,7 +465,7 @@ resource "aws_api_gateway_integration" "products_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -514,7 +514,7 @@ resource "aws_api_gateway_integration" "products_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -543,7 +543,7 @@ resource "aws_api_gateway_integration" "products_delete_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -726,7 +726,7 @@ resource "aws_api_gateway_integration" "customers_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/customers/{cpf}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -817,7 +817,7 @@ resource "aws_api_gateway_integration" "orders_combos_post_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -854,7 +854,7 @@ resource "aws_api_gateway_integration" "orders_combos_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -885,7 +885,7 @@ resource "aws_api_gateway_integration" "orders_combos_delete_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
@@ -922,7 +922,7 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/payment-confirmed"
 
-    connection_type         = "INTERNET"
+  connection_type = "INTERNET"
 
 
   request_parameters = {
