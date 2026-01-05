@@ -97,8 +97,6 @@ resource "aws_api_gateway_integration" "orders_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/customers/{customerId}"
-  connection_type         = "INTERNET"
-
   request_parameters = {
     "integration.request.path.customerId" = "method.request.path.customerId"
   }
@@ -140,7 +138,6 @@ resource "aws_api_gateway_integration" "catalog_health_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health"
-  connection_type         = "INTERNET"
 }
 
 resource "aws_api_gateway_resource" "catalog_health_db" {
@@ -163,8 +160,6 @@ resource "aws_api_gateway_integration" "catalog_health_db_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health/db"
-  connection_type         = "INTERNET"
-
 }
 
 # Orders Health Check
@@ -201,8 +196,6 @@ resource "aws_api_gateway_integration" "orders_health_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/orders-health/v1/health"
-  connection_type         = "INTERNET"
-
 }
 
 resource "aws_api_gateway_resource" "orders_health_db" {
@@ -225,8 +218,6 @@ resource "aws_api_gateway_integration" "orders_health_db_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/orders-health/v1/health/db"
-  connection_type         = "INTERNET"
-
 }
 
 # Payments Health Check
@@ -263,8 +254,6 @@ resource "aws_api_gateway_integration" "payments_health_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/payments-health/v1/health"
-  connection_type         = "INTERNET"
-
 }
 
 resource "aws_api_gateway_resource" "payments_health_db" {
@@ -287,8 +276,6 @@ resource "aws_api_gateway_integration" "payments_health_db_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/payments-health/v1/health/db"
-  connection_type         = "INTERNET"
-
 }
 
 # Proxy público genérico: ANY /{proxy+}
@@ -316,8 +303,6 @@ resource "aws_api_gateway_integration" "proxy_integration" {
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/{proxy}"
-  connection_type         = "INTERNET"
-
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
   }
@@ -348,8 +333,6 @@ resource "aws_api_gateway_integration" "payments_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments"
-  connection_type         = "INTERNET"
-
 }
 
 # GET /v1/payments/{id}
@@ -379,7 +362,7 @@ resource "aws_api_gateway_integration" "payments_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/{id}"
 
-  
+
 
 
   request_parameters = {
@@ -421,7 +404,7 @@ resource "aws_api_gateway_integration" "payments_orders_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/orders/{id}"
 
-  
+
 
 
   request_parameters = {
@@ -465,7 +448,7 @@ resource "aws_api_gateway_integration" "products_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-  
+
 
 
   request_parameters = {
@@ -489,8 +472,6 @@ resource "aws_api_gateway_integration" "products_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products"
-  connection_type         = "INTERNET"
-
 }
 
 # PUT /v1/products/{id}
@@ -514,7 +495,7 @@ resource "aws_api_gateway_integration" "products_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-  
+
 
 
   request_parameters = {
@@ -543,7 +524,7 @@ resource "aws_api_gateway_integration" "products_delete_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
-  
+
 
 
   request_parameters = {
@@ -573,8 +554,6 @@ resource "aws_api_gateway_integration" "products_reserve_patch_integration" {
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/reserve"
-  connection_type         = "INTERNET"
-
 }
 
 # PATCH /v1/products/confirm
@@ -599,8 +578,6 @@ resource "aws_api_gateway_integration" "products_confirm_patch_integration" {
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/confirm"
-  connection_type         = "INTERNET"
-
 }
 
 # PATCH /v1/products/release
@@ -625,8 +602,6 @@ resource "aws_api_gateway_integration" "products_release_patch_integration" {
   integration_http_method = "PATCH"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/release"
-  connection_type         = "INTERNET"
-
 }
 
 resource "aws_api_gateway_resource" "categories" {
@@ -649,8 +624,6 @@ resource "aws_api_gateway_integration" "categories_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/categories"
-  connection_type         = "INTERNET"
-
 }
 
 resource "aws_api_gateway_method" "categories_post" {
@@ -667,8 +640,6 @@ resource "aws_api_gateway_integration" "categories_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/categories"
-  connection_type         = "INTERNET"
-
 }
 
 
@@ -695,8 +666,6 @@ resource "aws_api_gateway_integration" "customers_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/customers"
-  connection_type         = "INTERNET"
-
 }
 
 # GET /v1/customers/{cpf}
@@ -726,7 +695,7 @@ resource "aws_api_gateway_integration" "customers_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/customers/{cpf}"
 
-  
+
 
 
   request_parameters = {
@@ -752,8 +721,6 @@ resource "aws_api_gateway_integration" "orders_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders"
-  connection_type         = "INTERNET"
-
 }
 
 # GET /v1/orders/active
@@ -778,8 +745,6 @@ resource "aws_api_gateway_integration" "orders_active_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/active"
-  connection_type         = "INTERNET"
-
 }
 
 # /v1/orders/{orderId}
@@ -817,7 +782,7 @@ resource "aws_api_gateway_integration" "orders_combos_post_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos"
 
-  
+
 
 
   request_parameters = {
@@ -854,7 +819,7 @@ resource "aws_api_gateway_integration" "orders_combos_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
-  
+
 
 
   request_parameters = {
@@ -885,7 +850,7 @@ resource "aws_api_gateway_integration" "orders_combos_delete_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
-  
+
 
 
   request_parameters = {
@@ -922,7 +887,7 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/payment-confirmed"
 
-  
+
 
 
   request_parameters = {
