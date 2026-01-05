@@ -122,7 +122,15 @@ const getRequiredRole = (method, path, routeRoles) => {
       const prefix = patternPath.slice(0, -2) // Remove '/*'
       const normalizedPrefix = normalizePath(prefix)
       // Check if normalized path starts with normalized prefix followed by /
-      if (normalizedPath.startsWith(normalizedPrefix + '/') || normalizedPath === normalizedPrefix) {
+      if (normalizedPath.startsWith(normalizedPrefix + '/')) {
+        // Get the segment after the prefix
+        const afterPrefix = normalizedPath.slice(normalizedPrefix.length + 1)
+        const nextSegment = afterPrefix.split('/')[0]
+        // Only match if the next segment is * (normalized ID) - this ensures we only match IDs, not fixed routes
+        if (nextSegment === '*') {
+          return requiredRole
+        }
+      } else if (normalizedPath === normalizedPrefix) {
         return requiredRole
       }
     } else {

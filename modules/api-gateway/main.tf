@@ -630,7 +630,8 @@ resource "aws_api_gateway_method" "categories_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.categories.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/categories", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/categories", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "categories_post_integration" {
@@ -752,6 +753,32 @@ resource "aws_api_gateway_resource" "orders_order_id" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id   = aws_api_gateway_resource.orders_customer.id
   path_part   = "{orderId}"
+}
+
+# GET /v1/orders/{orderId}
+resource "aws_api_gateway_method" "orders_get_by_id" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_order_id.id
+  http_method   = "GET"
+  authorization = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
+
+  request_parameters = {
+    "method.request.path.orderId" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "orders_get_by_id_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_order_id.id
+  http_method             = aws_api_gateway_method.orders_get_by_id.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}"
+
+  request_parameters = {
+    "integration.request.path.orderId" = "method.request.path.orderId"
+  }
 }
 
 # /v1/orders/{orderId}/combos
@@ -938,6 +965,7 @@ resource "aws_api_gateway_deployment" "this" {
     # Orders
     aws_api_gateway_integration.orders_post_integration,
     aws_api_gateway_integration.orders_active_get_integration,
+    aws_api_gateway_integration.orders_get_by_id_integration,
     aws_api_gateway_integration.orders_combos_post_integration,
     aws_api_gateway_integration.orders_combos_put_integration,
     aws_api_gateway_integration.orders_combos_delete_integration,

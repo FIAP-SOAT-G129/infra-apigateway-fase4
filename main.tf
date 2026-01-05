@@ -1,7 +1,9 @@
 locals {
   route_roles = {
-    "GET:/v1/orders"     = "customer"
-    "GET:/v1/products/*" = "employee"
+    "GET:/v1/orders"           = "customer"
+    "GET:/v1/products/*"       = "employee"
+    "POST:/v1/categories"      = "employee"
+    "GET:/v1/orders/*"         = "customer"
   }
 }
 
