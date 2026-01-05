@@ -278,36 +278,6 @@ resource "aws_api_gateway_integration" "payments_health_db_get_integration" {
   uri                     = "http://${var.alb_dns_name}/payments-health/v1/health/db"
 }
 
-# Proxy público genérico: ANY /{proxy+}
-resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
-  path_part   = "{proxy+}"
-}
-
-resource "aws_api_gateway_method" "proxy_any" {
-  rest_api_id   = aws_api_gateway_rest_api.this.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
-
-  request_parameters = {
-    "method.request.path.proxy" = true
-  }
-}
-
-resource "aws_api_gateway_integration" "proxy_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.this.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy_any.http_method
-  integration_http_method = "ANY"
-  type                    = "HTTP_PROXY"
-  uri                     = "http://${var.alb_dns_name}/{proxy}"
-  request_parameters = {
-    "integration.request.path.proxy" = "method.request.path.proxy"
-  }
-}
-
 # MS PAGAMENTOS (porta 8082)
 
 # /v1/payments
@@ -919,6 +889,37 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
+  }
+}
+
+# Proxy público genérico: ANY /{proxy+}
+# IMPORTANTE: Este proxy deve estar no final para não interferir com rotas específicas
+resource "aws_api_gateway_resource" "proxy" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_method" "proxy_any" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.proxy.id
+  http_method   = "ANY"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "proxy_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.proxy.id
+  http_method             = aws_api_gateway_method.proxy_any.http_method
+  integration_http_method = "ANY"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/{proxy}"
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
   }
 }
 
