@@ -82,7 +82,8 @@ resource "aws_api_gateway_method" "orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer_param.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.customerId" = true
@@ -96,41 +97,185 @@ resource "aws_api_gateway_integration" "orders_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/customers/{customerId}"
-
   request_parameters = {
     "integration.request.path.customerId" = "method.request.path.customerId"
   }
 }
 
-# Proxy público genérico: ANY /{proxy+}
-resource "aws_api_gateway_resource" "proxy" {
+# HEALTH CHECKS
+
+# Catalog Health Check
+# /catalog-health/v1/health
+resource "aws_api_gateway_resource" "catalog_health" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id   = aws_api_gateway_rest_api.this.root_resource_id
-  path_part   = "{proxy+}"
+  path_part   = "catalog-health"
 }
 
-resource "aws_api_gateway_method" "proxy_any" {
+resource "aws_api_gateway_resource" "catalog_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "catalog_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "catalog_health_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
+  resource_id   = aws_api_gateway_resource.catalog_health_path.id
+  http_method   = "GET"
   authorization = "NONE"
-
-  request_parameters = {
-    "method.request.path.proxy" = true
-  }
 }
 
-resource "aws_api_gateway_integration" "proxy_integration" {
+resource "aws_api_gateway_integration" "catalog_health_get_integration" {
   rest_api_id             = aws_api_gateway_rest_api.this.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy_any.http_method
-  integration_http_method = "ANY"
+  resource_id             = aws_api_gateway_resource.catalog_health_path.id
+  http_method             = aws_api_gateway_method.catalog_health_get.http_method
+  integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${var.alb_dns_name}/{proxy}"
+  uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health"
+}
 
-  request_parameters = {
-    "integration.request.path.proxy" = "method.request.path.proxy"
-  }
+resource "aws_api_gateway_resource" "catalog_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.catalog_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "catalog_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.catalog_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "catalog_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.catalog_health_db.id
+  http_method             = aws_api_gateway_method.catalog_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/catalog-health/v1/health/db"
+}
+
+# Orders Health Check
+# /orders-health/v1/health
+resource "aws_api_gateway_resource" "orders_health" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "orders-health"
+}
+
+resource "aws_api_gateway_resource" "orders_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "orders_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "orders_health_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_health_path.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "orders_health_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_health_path.id
+  http_method             = aws_api_gateway_method.orders_health_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/orders-health/v1/health"
+}
+
+resource "aws_api_gateway_resource" "orders_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.orders_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "orders_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "orders_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_health_db.id
+  http_method             = aws_api_gateway_method.orders_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/orders-health/v1/health/db"
+}
+
+# Payments Health Check
+# /payments-health/v1/health
+resource "aws_api_gateway_resource" "payments_health" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "payments-health"
+}
+
+resource "aws_api_gateway_resource" "payments_health_v1" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health.id
+  path_part   = "v1"
+}
+
+resource "aws_api_gateway_resource" "payments_health_path" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health_v1.id
+  path_part   = "health"
+}
+
+resource "aws_api_gateway_method" "payments_health_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.payments_health_path.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "payments_health_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.payments_health_path.id
+  http_method             = aws_api_gateway_method.payments_health_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/payments-health/v1/health"
+}
+
+resource "aws_api_gateway_resource" "payments_health_db" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.payments_health_path.id
+  path_part   = "db"
+}
+
+resource "aws_api_gateway_method" "payments_health_db_get" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.payments_health_db.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "payments_health_db_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.payments_health_db.id
+  http_method             = aws_api_gateway_method.payments_health_db_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/payments-health/v1/health/db"
 }
 
 # MS PAGAMENTOS (porta 8082)
@@ -147,7 +292,8 @@ resource "aws_api_gateway_method" "payments_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/payments", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/payments", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "payments_post_integration" {
@@ -170,7 +316,8 @@ resource "aws_api_gateway_method" "payments_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_id.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/payments/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/payments/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -184,6 +331,9 @@ resource "aws_api_gateway_integration" "payments_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/{id}"
+
+
+
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -208,7 +358,8 @@ resource "aws_api_gateway_method" "payments_orders_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.payments_orders_id.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/payments/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/payments/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -222,6 +373,9 @@ resource "aws_api_gateway_integration" "payments_orders_get_integration" {
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/payments/orders/{id}"
+
+
+
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -248,7 +402,8 @@ resource "aws_api_gateway_method" "products_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -263,6 +418,9 @@ resource "aws_api_gateway_integration" "products_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
+
+
+
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
   }
@@ -273,7 +431,8 @@ resource "aws_api_gateway_method" "products_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/products", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/products", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_post_integration" {
@@ -290,7 +449,8 @@ resource "aws_api_gateway_method" "products_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "PUT"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PUT:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PUT:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -305,6 +465,9 @@ resource "aws_api_gateway_integration" "products_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
 
+
+
+
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
   }
@@ -315,7 +478,8 @@ resource "aws_api_gateway_method" "products_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_id.id
   http_method   = "DELETE"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "DELETE:/v1/products/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "DELETE:/v1/products/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.id" = true
@@ -329,6 +493,9 @@ resource "aws_api_gateway_integration" "products_delete_integration" {
   integration_http_method = "DELETE"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/products/{id}"
+
+
+
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -346,7 +513,8 @@ resource "aws_api_gateway_method" "products_reserve_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_reserve.id
   http_method   = "PATCH"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/reserve", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/reserve", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_reserve_patch_integration" {
@@ -369,7 +537,8 @@ resource "aws_api_gateway_method" "products_confirm_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_confirm.id
   http_method   = "PATCH"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/confirm", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/confirm", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_confirm_patch_integration" {
@@ -392,7 +561,8 @@ resource "aws_api_gateway_method" "products_release_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.products_release.id
   http_method   = "PATCH"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PATCH:/v1/products/release", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/products/release", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "products_release_patch_integration" {
@@ -430,7 +600,8 @@ resource "aws_api_gateway_method" "categories_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.categories.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/categories", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/categories", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "categories_post_integration" {
@@ -455,7 +626,8 @@ resource "aws_api_gateway_method" "customers_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/customers", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/customers", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "customers_post_integration" {
@@ -478,7 +650,8 @@ resource "aws_api_gateway_method" "customers_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.customers_cpf.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/customers/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/customers/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.cpf" = true
@@ -493,6 +666,9 @@ resource "aws_api_gateway_integration" "customers_get_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/customers/{cpf}"
 
+
+
+
   request_parameters = {
     "integration.request.path.cpf" = "method.request.path.cpf"
   }
@@ -505,7 +681,8 @@ resource "aws_api_gateway_method" "orders_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_customer.id # /v1/orders
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/orders", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/orders", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "orders_post_integration" {
@@ -528,7 +705,8 @@ resource "aws_api_gateway_method" "orders_active_get" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_active.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "GET:/v1/orders/active", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/active", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "orders_active_get_integration" {
@@ -547,6 +725,32 @@ resource "aws_api_gateway_resource" "orders_order_id" {
   path_part   = "{orderId}"
 }
 
+# GET /v1/orders/{orderId}
+resource "aws_api_gateway_method" "orders_get_by_id" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.orders_order_id.id
+  http_method   = "GET"
+  authorization = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "GET:/v1/orders/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
+
+  request_parameters = {
+    "method.request.path.orderId" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "orders_get_by_id_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.orders_order_id.id
+  http_method             = aws_api_gateway_method.orders_get_by_id.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}"
+
+  request_parameters = {
+    "integration.request.path.orderId" = "method.request.path.orderId"
+  }
+}
+
 # /v1/orders/{orderId}/combos
 resource "aws_api_gateway_resource" "orders_combos" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -559,7 +763,8 @@ resource "aws_api_gateway_method" "orders_combos_post" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "POST:/v1/orders/*/combos", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "POST:/v1/orders/*/combos", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -573,6 +778,9 @@ resource "aws_api_gateway_integration" "orders_combos_post_integration" {
   integration_http_method = "POST"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos"
+
+
+
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
@@ -591,7 +799,8 @@ resource "aws_api_gateway_method" "orders_combos_put" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "PUT"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PUT:/v1/orders/*/combos/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PUT:/v1/orders/*/combos/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -607,6 +816,9 @@ resource "aws_api_gateway_integration" "orders_combos_put_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
 
+
+
+
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
     "integration.request.path.comboId" = "method.request.path.comboId"
@@ -618,7 +830,8 @@ resource "aws_api_gateway_method" "orders_combos_delete" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_combos_id.id
   http_method   = "DELETE"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "DELETE:/v1/orders/*/combos/*", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "DELETE:/v1/orders/*/combos/*", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -633,6 +846,9 @@ resource "aws_api_gateway_integration" "orders_combos_delete_integration" {
   integration_http_method = "DELETE"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/combos/{comboId}"
+
+
+
 
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
@@ -652,7 +868,8 @@ resource "aws_api_gateway_method" "orders_payment_confirmed_patch" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.orders_payment_confirmed.id
   http_method   = "PATCH"
-  authorization = "NONE"
+  authorization = lookup(var.route_roles, "PATCH:/v1/orders/*/payment-confirmed", null) != null ? "CUSTOM" : "NONE"
+  authorizer_id = lookup(var.route_roles, "PATCH:/v1/orders/*/payment-confirmed", null) != null ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     "method.request.path.orderId" = true
@@ -667,19 +884,30 @@ resource "aws_api_gateway_integration" "orders_payment_confirmed_patch_integrati
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.alb_dns_name}/v1/orders/{orderId}/payment-confirmed"
 
+
+
+
   request_parameters = {
     "integration.request.path.orderId" = "method.request.path.orderId"
   }
 }
 
-# Deployment and Stage
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
   depends_on = [
+    aws_api_gateway_authorizer.lambda_auth,
+    aws_lambda_permission.auth_permission,
     aws_api_gateway_integration.login_integration,
     aws_api_gateway_integration.orders_get_integration,
-    aws_api_gateway_integration.proxy_integration,
+
+    # Health Checks
+    aws_api_gateway_integration.catalog_health_get_integration,
+    aws_api_gateway_integration.catalog_health_db_get_integration,
+    aws_api_gateway_integration.orders_health_get_integration,
+    aws_api_gateway_integration.orders_health_db_get_integration,
+    aws_api_gateway_integration.payments_health_get_integration,
+    aws_api_gateway_integration.payments_health_db_get_integration,
 
     # Payments
     aws_api_gateway_integration.payments_post_integration,
@@ -707,6 +935,7 @@ resource "aws_api_gateway_deployment" "this" {
     # Orders
     aws_api_gateway_integration.orders_post_integration,
     aws_api_gateway_integration.orders_active_get_integration,
+    aws_api_gateway_integration.orders_get_by_id_integration,
     aws_api_gateway_integration.orders_combos_post_integration,
     aws_api_gateway_integration.orders_combos_put_integration,
     aws_api_gateway_integration.orders_combos_delete_integration,
