@@ -896,6 +896,8 @@ resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
   depends_on = [
+    aws_api_gateway_authorizer.lambda_auth,
+    aws_lambda_permission.auth_permission,
     aws_api_gateway_integration.login_integration,
     aws_api_gateway_integration.orders_get_integration,
 
