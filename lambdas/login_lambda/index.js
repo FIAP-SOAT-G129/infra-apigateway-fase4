@@ -40,15 +40,15 @@ const fetchCustomerByCpf = async (cpf) => {
   }
 
   try {
-    const nlbDnsName = process.env.NLB_DNS_NAME
-    const nlbPort = process.env.NLB_PORT || "30080"
+    const lbDnsName = process.env.LB_DNS_NAME
+    const lbPort = process.env.NLB_PORT || "80"
 
-    if (!nlbDnsName) {
-      console.error('NLB_DNS_NAME environment variable is not set')
+    if (!lbDnsName) {
+      console.error('LB_DNS_NAME environment variable is not set')
       return null
     }
 
-    const url = `http://${nlbDnsName}:${nlbPort}/v1/customers/${cpf}`
+    const url = `http://${lbDnsName}:${lbPort}/v1/customers/${cpf}`
     console.log('Making request to:', url)
 
     const response = await fetch(url, {
@@ -82,15 +82,15 @@ const fetchEmployeeByEmail = async (email) => {
   }
 
   try {
-    const nlbDnsName = process.env.NLB_DNS_NAME
-    const nlbPort = process.env.NLB_PORT || "30080"
+    const lbDnsName = process.env.LB_DNS_NAME
+    const lbPort = process.env.NLB_PORT || "80"
 
-    if (!nlbDnsName) {
-      console.error('NLB_DNS_NAME environment variable is not set')
+    if (!lbDnsName) {
+      console.error('LB_DNS_NAME environment variable is not set')
       return null
     }
 
-    const url = `http://${nlbDnsName}:${nlbPort}/v1/employees/${email}`
+    const url = `http://${lbDnsName}:${lbPort}/v1/employees/${email}`
     console.log('Making request to:', url)
 
     const response = await fetch(url, {
