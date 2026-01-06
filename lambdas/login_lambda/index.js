@@ -13,15 +13,118 @@ const getSecret = async (name) => {
   }
 }
 
+const createToken = async (name, cpf, email, role) => {
+  const secret = await getSecret(process.env.JWT_SECRET_NAME)
+
+  const token = jwt.sign(
+    {
+      cpf, email, role, name,
+      sub: cpf || email,
+      iat: Math.floor(Date.now() / 1000)
+    },
+    secret,
+    {
+      algorithm: "HS256",
+      expiresIn: "1h"
+    }
+  )
+
+  return token
+}
+
+const fetchCustomerByCpf = async (cpf) => {
+  console.log('fetchCustomerByCpf', cpf)
+
+  if (!cpf || cpf.length !== 11) {
+    return null
+  }
+
+  try {
+    const nlbDnsName = process.env.NLB_DNS_NAME
+    const nlbPort = process.env.NLB_PORT || "30080"
+
+    if (!nlbDnsName) {
+      console.error('NLB_DNS_NAME environment variable is not set')
+      return null
+    }
+
+    const url = `http://${nlbDnsName}:${nlbPort}/v1/customers/${cpf}`
+    console.log('Making request to:', url)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      console.error(`HTTP error! status: ${response.status}`)
+      return null
+    }
+
+    const customer = await response.json()
+    console.log('Customer data received:', customer)
+
+    return customer
+
+  } catch (error) {
+    console.error('Error fetching customer:', error.message)
+    return null
+  }
+}
+
+const fetchEmployeeByEmail = async (email) => {
+  console.log('fetchEmployeeByEmail', email)
+
+  if (!email || !email.includes('@')) {
+    return null
+  }
+
+  try {
+    const nlbDnsName = process.env.NLB_DNS_NAME
+    const nlbPort = process.env.NLB_PORT || "30080"
+
+    if (!nlbDnsName) {
+      console.error('NLB_DNS_NAME environment variable is not set')
+      return null
+    }
+
+    const url = `http://${nlbDnsName}:${nlbPort}/v1/employees/${email}`
+    console.log('Making request to:', url)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      console.error(`HTTP error! status: ${response.status}`)
+      return null
+    }
+
+    const employee = await response.json()
+    console.log('Employee data received:', employee)
+
+    return employee
+
+  } catch (error) {
+    console.error('Error fetching employee:', error.message)
+    return null
+  }
+}
+
 exports.handler = async (event) => {
   try {
     const body = event.isBase64Encoded ?
       Buffer.from(event.body, 'base64').toString() :
       event.body
 
-    const { cpf, role, name } = JSON.parse(body || "{}")
+    const { cpf, email } = JSON.parse(body || "{}")
 
-    if (!cpf) {
+    if (!cpf && !email) {
       return {
         statusCode: 400,
         headers: {
@@ -29,54 +132,56 @@ exports.handler = async (event) => {
           "Access-Control-Allow-Origin": "*"
         },
         body: JSON.stringify({
-          error: "CPF é obrigatório",
-          message: "Campo 'cpf' deve ser fornecido no body da requisição"
+          error: "CPF ou Email é obrigatório",
+          message: "Campo 'cpf' ou 'email' deve ser fornecido no body da requisição"
         })
       }
     }
 
-    if (!role) {
+    if (cpf) {
+      const customer = await fetchCustomerByCpf(cpf)
+
+      if (!customer) {
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          },
+        }
+      }
+
+      const token = await createToken(customer.name, customer.cpf, customer.email, 'customer')
+
+      const response = {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        body: JSON.stringify({
+          token,
+          customer,
+          role: 'customer',
+          expiresIn: "1h"
+        })
+      }
+
+      return response
+    }
+
+    const employee = await fetchEmployeeByEmail(email)
+    if (!employee) {
       return {
         statusCode: 400,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*"
         },
-        body: JSON.stringify({
-          error: "Role é obrigatório",
-          message: "Campo 'role' deve ser fornecido no body da requisição"
-        })
       }
     }
 
-    if (role !== "customer" && role !== "employee") {
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        },
-        body: JSON.stringify({
-          error: "Role inválido",
-          message: "Campo 'role' deve ser 'customer' ou 'employee'"
-        })
-      }
-    }
-
-    const secret = await getSecret(process.env.JWT_SECRET_NAME)
-
-    const token = jwt.sign(
-      {
-        cpf, role, name,
-        sub: cpf,
-        iat: Math.floor(Date.now() / 1000)
-      },
-      secret,
-      {
-        algorithm: "HS256",
-        expiresIn: "1h"
-      }
-    )
+    const token = createToken(employee.name, null, employee.email, 'employee')
 
     const response = {
       statusCode: 200,
@@ -86,8 +191,8 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         token,
-        cpf: cpf,
-        role: role,
+        employee,
+        role: 'employee',
         expiresIn: "1h"
       })
     }
