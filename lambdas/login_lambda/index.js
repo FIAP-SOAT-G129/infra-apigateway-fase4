@@ -41,14 +41,12 @@ const fetchCustomerByCpf = async (cpf) => {
 
   try {
     const lbDnsName = process.env.LB_DNS_NAME
-    const lbPort = process.env.NLB_PORT || "80"
-
     if (!lbDnsName) {
       console.error('LB_DNS_NAME environment variable is not set')
       return null
     }
 
-    const url = `http://${lbDnsName}:${lbPort}/v1/customers/${cpf}`
+    const url = `http://${lbDnsName}/v1/customers/${cpf}`
     console.log('Making request to:', url)
 
     const response = await fetch(url, {
@@ -83,14 +81,12 @@ const fetchEmployeeByEmail = async (email) => {
 
   try {
     const lbDnsName = process.env.LB_DNS_NAME
-    const lbPort = process.env.NLB_PORT || "80"
-
     if (!lbDnsName) {
       console.error('LB_DNS_NAME environment variable is not set')
       return null
     }
 
-    const url = `http://${lbDnsName}:${lbPort}/v1/employees/${email}`
+    const url = `http://${lbDnsName}/v1/employees/${email}`
     console.log('Making request to:', url)
 
     const response = await fetch(url, {
