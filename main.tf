@@ -27,6 +27,7 @@ module "lambda_auth" {
   route_roles     = local.route_roles
   tags            = var.tags
   region          = var.region
+  alb_dns_name    = data.aws_lb.fastfood_alb.dns_name
 }
 
 module "lambda_login" {
@@ -40,6 +41,7 @@ module "lambda_login" {
   jwt_secret_name = module.secrets.secret_name
   tags            = var.tags
   region          = var.region
+  alb_dns_name    = data.aws_lb.fastfood_alb.dns_name
 }
 
 module "api_gateway" {
