@@ -53,21 +53,57 @@ resource "aws_lambda_permission" "login_permission" {
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
 
-#############
-resource "aws_api_gateway_resource" "paths" {
-  for_each = local.unique_path_segments
+# Level 0 Resources
+resource "aws_api_gateway_resource" "level_0" {
+  for_each = local.path_level_0
 
   rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
   path_part   = each.value.part
-
-  parent_id = each.value.index == 0 ? aws_api_gateway_rest_api.this.root_resource_id : aws_api_gateway_resource.paths[each.value.parent].id
 }
 
+# Level 1 Resources
+resource "aws_api_gateway_resource" "level_1" {
+  for_each = local.path_level_1
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.level_0[each.value.parent].id
+  path_part   = each.value.part
+}
+
+# Level 2 Resources
+resource "aws_api_gateway_resource" "level_2" {
+  for_each = local.path_level_2
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.level_1[each.value.parent].id
+  path_part   = each.value.part
+}
+
+# Level 3 Resources
+resource "aws_api_gateway_resource" "level_3" {
+  for_each = local.path_level_3
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.level_2[each.value.parent].id
+  path_part   = each.value.part
+}
+
+# Level 4 Resources
+resource "aws_api_gateway_resource" "level_4" {
+  for_each = local.path_level_4
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.level_3[each.value.parent].id
+  path_part   = each.value.part
+}
+
+# API Gateway Methods
 resource "aws_api_gateway_method" "methods" {
   for_each = local.api_routes
 
   rest_api_id = aws_api_gateway_rest_api.this.id
-  resource_id = aws_api_gateway_resource.paths[each.value.path].id
+  resource_id = local.api_gateway_resources[each.value.path].id
   http_method = each.value.method
 
   authorization = local.route_auth[each.key] != null ? "CUSTOM" : "NONE"
@@ -79,11 +115,12 @@ resource "aws_api_gateway_method" "methods" {
   }
 }
 
+# API Gateway Integrations (to ALB)
 resource "aws_api_gateway_integration" "integrations" {
   for_each = local.api_routes
 
   rest_api_id             = aws_api_gateway_rest_api.this.id
-  resource_id             = aws_api_gateway_resource.paths[each.value.path].id
+  resource_id             = local.api_gateway_resources[each.value.path].id
   http_method             = aws_api_gateway_method.methods[each.key].http_method
   integration_http_method = each.value.method
   type                    = "HTTP_PROXY"
@@ -95,8 +132,8 @@ resource "aws_api_gateway_integration" "integrations" {
     "integration.request.path.${param}" => "method.request.path.${param}"
   }
 }
-############
 
+# API Gateway Deployment
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
