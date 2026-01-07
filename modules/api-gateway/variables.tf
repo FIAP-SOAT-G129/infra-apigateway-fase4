@@ -19,6 +19,17 @@ variable "alb_dns_name" {
   description = "DNS of the ALB created from Ingress"
 }
 
+variable "alb_arn" {
+  type        = string
+  description = "ARN of the ALB created from Ingress"
+}
+
+variable "vpc_link_id" {
+  type        = string
+  description = "ID of the VPC Link created to connect API Gateway to the ALB"
+}
+
+
 variable "lambda_function_login_name" {
   type        = string
   description = "Name of the Lambda function to be integrated"
@@ -39,14 +50,16 @@ variable "lambda_function_auth_arn" {
   description = "ARN of the Lambda function used as Authorizer"
 }
 
+variable "route_roles" {
+  description = "Route-to-role mapping configuration (map of route patterns to required roles). Routes not in this map will be public (no auth)."
+  type        = map(string)
+  default     = {}
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
   description = "Tags applied to the resources"
 }
 
-variable "route_roles" {
-  description = "Route-to-role mapping configuration (map of route patterns to required roles). Routes not in this map will be public (no auth)."
-  type        = map(string)
-  default     = {}
-}
+

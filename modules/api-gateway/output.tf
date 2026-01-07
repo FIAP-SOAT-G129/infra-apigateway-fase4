@@ -1,8 +1,7 @@
 output "invoke_url" {
   description = "Invoke URL of the API Gateway"
-  value       = "https://${aws_api_gateway_rest_api.this.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.dev.stage_name}"
+  value       = "https://${aws_api_gateway_rest_api.this.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.this.stage_name}"
 }
-
 # Debug outputs
 output "api_gateway_id" {
   description = "API Gateway ID for debugging"
@@ -21,5 +20,5 @@ output "deployment_id" {
 
 output "stage_name" {
   description = "Stage name for debugging"
-  value       = aws_api_gateway_stage.dev.stage_name
+  value       = aws_api_gateway_stage.this.stage_name
 }
