@@ -125,6 +125,9 @@ resource "aws_api_gateway_integration" "integrations" {
   integration_http_method = each.value.method
   type                    = "HTTP_PROXY"
 
+  connection_type = "VPC_LINK"
+  connection_id   = var.vpc_link_id
+
   uri = "http://${var.alb_dns_name}${each.value.alb_path}"
 
   request_parameters = {
