@@ -73,6 +73,7 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = merge({
       JWT_SECRET_NAME = var.jwt_secret_name
+      LB_DNS_NAME     = var.alb_dns_name
       SECRET_NAME     = "fastfood-jtw-secret"
       REGION          = var.region
       }, length(var.route_roles) > 0 ? {
