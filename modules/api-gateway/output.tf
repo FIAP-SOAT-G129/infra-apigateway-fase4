@@ -21,5 +21,5 @@ output "deployment_id" {
 
 output "stage_name" {
   description = "Stage name for debugging"
-  value       = aws_api_gateway_stage.dev.stage_name
+  value       = aws_api_gateway_stage.this.stage_name
 }

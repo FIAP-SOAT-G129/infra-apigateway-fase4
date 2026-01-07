@@ -196,8 +196,15 @@ locals {
     ]
   ])
 
-  unique_path_segments = {
+  # Group path segments by their full path to handle duplicates
+  grouped_path_segments = {
     for p in local.path_segments :
-    p.full_path => p
+    p.full_path => p...
+  }
+
+  # Make path segments unique to avoid duplicate resources
+  unique_path_segments = {
+    for path, segments in local.grouped_path_segments :
+    path => segments[0]
   }
 }

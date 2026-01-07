@@ -54,7 +54,6 @@ resource "aws_lambda_permission" "login_permission" {
 }
 
 #############
-
 resource "aws_api_gateway_resource" "paths" {
   for_each = local.unique_path_segments
 
@@ -96,7 +95,6 @@ resource "aws_api_gateway_integration" "integrations" {
     "integration.request.path.${param}" => "method.request.path.${param}"
   }
 }
-
 ############
 
 resource "aws_api_gateway_deployment" "this" {
