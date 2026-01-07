@@ -44,11 +44,22 @@ module "lambda_login" {
   alb_dns_name    = data.aws_lb.fastfood_alb.dns_name
 }
 
+module "vpc_link" {
+  source     = "./modules/vpc-link"
+  name       = var.name
+  subnet_ids = data.terraform_remote_state.foundation.outputs.private_subnet_ids
+  tags       = var.tags
+
+}
+
 module "api_gateway" {
-  source       = "./modules/api-gateway"
-  name         = var.name
-  region       = var.region
+  source = "./modules/api-gateway"
+  name   = var.name
+  region = var.region
+
   alb_dns_name = data.aws_lb.fastfood_alb.dns_name
+  alb_arn      = data.aws_lb.fastfood_alb.arn
+  vpc_link_id  = module.vpc_link.id
 
   lambda_function_login_name = module.lambda_login.function_name
   lambda_function_login_arn  = module.lambda_login.function_arn
