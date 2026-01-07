@@ -16,6 +16,7 @@ const getSecret = async (name) => {
 const createToken = async (name, cpf, email, role) => {
   const secret = await getSecret(process.env.JWT_SECRET_NAME)
 
+  console.log('createToken', name, cpf, email, role)
   const token = jwt.sign(
     {
       cpf, email, role, name,
@@ -28,6 +29,7 @@ const createToken = async (name, cpf, email, role) => {
       expiresIn: "1h"
     }
   )
+  console.log('token', token)
 
   return token
 }
@@ -177,6 +179,7 @@ exports.handler = async (event) => {
       }
     }
 
+    console.log('employee', employee)
     const token = createToken(employee.name, null, employee.email, 'employee')
 
     const response = {
