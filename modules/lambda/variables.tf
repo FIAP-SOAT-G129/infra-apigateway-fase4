@@ -57,3 +57,14 @@ variable "region" {
   description = "AWS region for API Gateway and Lambda"
   type        = string
 }
+
+variable "route_roles" {
+  description = "Route-to-role mapping configuration (map of route patterns to required roles)"
+  type        = map(string)
+  default     = {}
+}
+
+variable "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  type        = string
+}
