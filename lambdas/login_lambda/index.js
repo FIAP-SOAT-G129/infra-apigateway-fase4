@@ -180,7 +180,7 @@ exports.handler = async (event) => {
     }
 
     console.log('employee', employee)
-    const token = createToken(employee.name, null, employee.email, 'employee')
+    const token = await createToken(employee.name, null, employee.email, 'employee')
 
     const response = {
       statusCode: 200,
