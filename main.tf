@@ -58,6 +58,7 @@ module "api_gateway" {
   region = var.region
 
   alb_dns_name = data.aws_lb.fastfood_alb.dns_name
+  alb_arn      = data.aws_lb.fastfood_alb.arn
   vpc_link_id  = module.vpc_link.id
 
   lambda_function_login_name = module.lambda_login.function_name

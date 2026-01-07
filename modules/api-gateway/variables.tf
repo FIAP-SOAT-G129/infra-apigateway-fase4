@@ -19,6 +19,11 @@ variable "alb_dns_name" {
   description = "DNS of the ALB created from Ingress"
 }
 
+variable "alb_arn" {
+  type        = string
+  description = "ARN of the ALB created from Ingress"
+}
+
 variable "vpc_link_id" {
   type        = string
   description = "ID of the VPC Link created to connect API Gateway to the ALB"
