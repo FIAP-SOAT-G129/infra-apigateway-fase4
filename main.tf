@@ -3,6 +3,8 @@ locals {
     "GET:/v1/orders"      = "customer"
     "GET:/v1/products/*"  = "employee"
     "POST:/v1/categories" = "employee"
+    "POST:/v1/orders"     = "employee"
+    "POST:/v1/products"   = "employee"
     "GET:/v1/orders/*"    = "customer"
   }
 }
