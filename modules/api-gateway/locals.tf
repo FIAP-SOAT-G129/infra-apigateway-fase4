@@ -29,11 +29,6 @@ locals {
     if v.index == 4
   }
 
-  route_keys = {
-    for k, r in var.api_routes :
-    k => "${r.method}:/${r.path}"
-  }
-
   # Determine if each route requires authentication based on auth_roles
   # Maps each route to its required roles list, or empty list if public
   route_auth = {

@@ -184,11 +184,21 @@ locals {
     }
   }
 
+  # Helper function to normalize path by replacing all parameter placeholders with *
+  # Example: "v1/orders/{orderId}" => "v1/orders/*"
+  normalize_path_for_auth = {
+    for key, route in local.api_routes :
+    key => length(route.path_params) > 0 ?
+    replace(route.path, join("", [for p in route.path_params : "{${p}}"]), "*") :
+    route.path
+  }
+
   # Generate route_roles dynamically from api_routes
   # Only include routes that have auth_roles defined (non-empty)
+  # Replace path parameters with * for authenticated routes
   route_roles = {
     for key, route in local.api_routes :
-    "${route.method}:/${route.path}" => route.auth_roles
+    "${route.method}:/${local.normalize_path_for_auth[key]}" => route.auth_roles
     if length(route.auth_roles) > 0
   }
 }

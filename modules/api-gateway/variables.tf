@@ -29,7 +29,6 @@ variable "vpc_link_id" {
   description = "ID of the VPC Link created to connect API Gateway to the ALB"
 }
 
-
 variable "lambda_function_login_name" {
   type        = string
   description = "Name of the Lambda function to be integrated"
