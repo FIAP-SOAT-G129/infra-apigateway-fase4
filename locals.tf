@@ -5,6 +5,7 @@ locals {
       method      = "GET"
       path        = "v1/categories"
       alb_path    = "/v1/categories"
+      auth_roles  = []
       path_params = []
     }
 
@@ -12,6 +13,7 @@ locals {
       method      = "GET"
       path        = "v1/categories/{categoryId}"
       alb_path    = "/v1/categories/{categoryId}"
+      auth_roles  = []
       path_params = ["categoryId"]
     }
 
@@ -19,6 +21,7 @@ locals {
       method      = "POST"
       path        = "v1/categories"
       alb_path    = "/v1/categories"
+      auth_roles  = ["employee"]
       path_params = []
     }
 
@@ -26,6 +29,7 @@ locals {
       method      = "PUT"
       path        = "v1/categories/{categoryId}"
       alb_path    = "/v1/categories/{categoryId}"
+      auth_roles  = ["employee"]
       path_params = ["categoryId"]
     }
 
@@ -33,6 +37,7 @@ locals {
       method      = "DELETE"
       path        = "v1/categories/{categoryId}"
       alb_path    = "/v1/categories/{categoryId}"
+      auth_roles  = ["employee"]
       path_params = ["categoryId"]
     }
 
@@ -41,6 +46,7 @@ locals {
       method      = "GET"
       path        = "v1/products/category/{categoryId}"
       alb_path    = "/v1/products/category/{categoryId}"
+      auth_roles  = []
       path_params = ["categoryId"]
     }
 
@@ -48,6 +54,7 @@ locals {
       method      = "GET"
       path        = "v1/products/{productId}"
       alb_path    = "/v1/products/{productId}"
+      auth_roles  = []
       path_params = ["productId"]
     }
 
@@ -55,6 +62,7 @@ locals {
       method      = "POST"
       path        = "v1/products"
       alb_path    = "/v1/products"
+      auth_roles  = ["employee"]
       path_params = []
     }
 
@@ -62,6 +70,7 @@ locals {
       method      = "PUT"
       path        = "v1/products/{productId}"
       alb_path    = "/v1/products/{productId}"
+      auth_roles  = ["employee"]
       path_params = ["productId"]
     }
 
@@ -69,6 +78,7 @@ locals {
       method      = "DELETE"
       path        = "v1/products/{productId}"
       alb_path    = "/v1/products/{productId}"
+      auth_roles  = ["employee"]
       path_params = ["productId"]
     }
 
@@ -77,6 +87,7 @@ locals {
       method      = "POST"
       path        = "v1/customers"
       alb_path    = "/v1/customers"
+      auth_roles  = []
       path_params = []
     }
 
@@ -85,6 +96,7 @@ locals {
       method      = "POST"
       path        = "v1/employees"
       alb_path    = "/v1/employees"
+      auth_roles  = []
       path_params = []
     }
 
@@ -93,6 +105,7 @@ locals {
       method      = "GET"
       path        = "v1/orders"
       alb_path    = "/v1/orders"
+      auth_roles  = []
       path_params = []
     }
 
@@ -100,6 +113,7 @@ locals {
       method      = "GET"
       path        = "v1/orders/active"
       alb_path    = "/v1/orders/active"
+      auth_roles  = []
       path_params = []
     }
 
@@ -107,6 +121,7 @@ locals {
       method      = "GET"
       path        = "v1/orders/{orderId}"
       alb_path    = "/v1/orders/{orderId}"
+      auth_roles  = ["employee", "customer"]
       path_params = ["orderId"]
     }
 
@@ -114,6 +129,7 @@ locals {
       method      = "POST"
       path        = "v1/orders"
       alb_path    = "/v1/orders"
+      auth_roles  = ["customer"]
       path_params = []
     }
 
@@ -121,6 +137,7 @@ locals {
       method      = "POST"
       path        = "v1/orders/{orderId}/combos"
       alb_path    = "/v1/orders/{orderId}/combos"
+      auth_roles  = ["customer"]
       path_params = ["orderId"]
     }
 
@@ -128,6 +145,7 @@ locals {
       method      = "PUT"
       path        = "v1/orders/{orderId}/combos/{comboId}"
       alb_path    = "/v1/orders/{orderId}/combos/{comboId}"
+      auth_roles  = ["customer"]
       path_params = ["orderId", "comboId"]
     }
 
@@ -135,6 +153,7 @@ locals {
       method      = "DELETE"
       path        = "v1/orders/{orderId}/combos/{comboId}"
       alb_path    = "/v1/orders/{orderId}/combos/{comboId}"
+      auth_roles  = ["customer"]
       path_params = ["orderId", "comboId"]
     }
 
@@ -143,6 +162,7 @@ locals {
       method      = "GET"
       path        = "v1/payments/{paymentId}"
       alb_path    = "/v1/payments/{paymentId}"
+      auth_roles  = ["employee", "customer"]
       path_params = ["paymentId"]
     }
 
@@ -150,6 +170,7 @@ locals {
       method      = "GET"
       path        = "v1/payments/orders/{orderId}"
       alb_path    = "/v1/payments/orders/{orderId}"
+      auth_roles  = ["employee", "customer"]
       path_params = ["orderId"]
     }
 
@@ -158,7 +179,24 @@ locals {
       method      = "POST"
       path        = "v1/webhooks/mercadopago"
       alb_path    = "/v1/webhooks/mercadopago"
+      auth_roles  = []
       path_params = []
     }
+  }
+
+  # Helper function to normalize path by replacing all parameter placeholders with *
+  # Example: "v1/orders/{orderId}" => "v1/orders/*"
+  normalize_path_for_auth = {
+    for key, route in local.api_routes :
+    key => replace(route.path, "/\\{[^}]+\\}/", "*")
+  }
+
+  # Generate route_roles dynamically from api_routes
+  # Only include routes that have auth_roles defined (non-empty)
+  # Replace path parameters with * for authenticated routes
+  route_roles = {
+    for key, route in local.api_routes :
+    "${route.method}:/${local.normalize_path_for_auth[key]}" => route.auth_roles
+    if length(route.auth_roles) > 0
   }
 }

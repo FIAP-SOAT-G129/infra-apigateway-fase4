@@ -1,12 +1,3 @@
-locals {
-  route_roles = {
-    "GET:/v1/orders"      = "customer"
-    "GET:/v1/products/*"  = "employee"
-    "POST:/v1/categories" = "employee"
-    "GET:/v1/orders/*"    = "customer"
-  }
-}
-
 module "security_group" {
   source         = "./modules/security-group"
   name           = var.name
@@ -66,8 +57,8 @@ module "api_gateway" {
   lambda_function_auth_name  = module.lambda_auth.function_name
   lambda_function_auth_arn   = module.lambda_auth.function_arn
 
-  route_roles = local.route_roles
-  tags        = var.tags
+  api_routes = local.api_routes
+  tags       = var.tags
 }
 
 
