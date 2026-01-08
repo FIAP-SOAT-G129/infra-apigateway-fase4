@@ -110,9 +110,22 @@ const getRequiredRole = (method, path, routeRoles) => {
   return null;
 };
 
+const buildWildcardArn = (methodArn) => {
+  const parts = methodArn.split("/");
+  return `${parts[0]}/${parts[1]}/${parts[2]}/*`;
+};
+
 exports.handler = async (event) => {
   try {
     const token = getToken(event);
+
+    console.log("==== AUTHORIZER EVENT ====")
+    console.log(JSON.stringify({
+      type: event.type,
+      methodArn: event.methodArn,
+      token
+    }, null, 2))
+
     if (!token) {
       throw new Error("Unauthorized - No token");
     }
@@ -130,6 +143,9 @@ exports.handler = async (event) => {
       routeRoles = JSON.parse(process.env.ROUTE_ROLES);
     }
 
+    console.log("==== ROUTE ROLES KEYS ====")
+    console.log(Object.keys(routeRoles))
+
     const { method, path } = parseMethodArn(event.methodArn);
     const requiredRoles = getRequiredRole(method, path, routeRoles);
 
@@ -143,7 +159,7 @@ exports.handler = async (event) => {
       }
     }
 
-    return generatePolicy(decoded.sub.toString(), "Allow", event.methodArn, {
+    return generatePolicy(decoded.sub.toString(), "Allow", buildWildcardArn(event.methodArn), {
       userId: decoded.sub.toString(),
       cpf: decoded.cpf || "",
       role: userRole,
