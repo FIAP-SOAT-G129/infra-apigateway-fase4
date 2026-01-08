@@ -188,9 +188,7 @@ locals {
   # Example: "v1/orders/{orderId}" => "v1/orders/*"
   normalize_path_for_auth = {
     for key, route in local.api_routes :
-    key => length(route.path_params) > 0 ?
-    replace(route.path, join("", [for p in route.path_params : "{${p}}"]), "*") :
-    route.path
+    key => replace(route.path, "/\\{[^}]+\\}/", "*")
   }
 
   # Generate route_roles dynamically from api_routes
