@@ -183,12 +183,20 @@ exports.handler = async (event) => {
 
     const { method, path } = parseMethodArn(event.methodArn)
 
-    const requiredRole = getRequiredRole(method, path, routeRoles)
-    console.log('requiredRole', requiredRole)
-    console.log('userRole', userRole, " - ", requiredRole)
-    if (requiredRole && requiredRole !== userRole) {
-      console.log(`Access denied: Route requires '${requiredRole}' but user has '${userRole}'`)
-      throw new Error('Unauthorized - Insufficient permissions')
+    const requiredRoles = getRequiredRole(method, path, routeRoles)
+    console.log('requiredRoles', requiredRoles)
+    console.log('userRole', userRole, " - ", requiredRoles)
+    
+    // Check if route requires authentication
+    if (requiredRoles) {
+      // Ensure requiredRoles is always an array
+      const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+      
+      // Check if user's role is in the list of required roles
+      if (!rolesArray.includes(userRole)) {
+        console.log(`Access denied: Route requires one of [${rolesArray.join(', ')}] but user has '${userRole}'`)
+        throw new Error('Unauthorized - Insufficient permissions')
+      }
     }
 
     const policy = generatePolicy(

@@ -50,10 +50,15 @@ variable "lambda_function_auth_arn" {
   description = "ARN of the Lambda function used as Authorizer"
 }
 
-variable "route_roles" {
-  description = "Route-to-role mapping configuration (map of route patterns to required roles). Routes not in this map will be public (no auth)."
-  type        = map(string)
-  default     = {}
+variable "api_routes" {
+  description = "Map of API routes with their configurations (method, path, auth_roles, etc)"
+  type = map(object({
+    method      = string
+    path        = string
+    alb_path    = string
+    auth_roles  = list(string)
+    path_params = list(string)
+  }))
 }
 
 variable "tags" {

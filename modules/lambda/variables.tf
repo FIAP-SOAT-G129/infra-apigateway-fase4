@@ -60,7 +60,7 @@ variable "region" {
 
 variable "route_roles" {
   description = "Route-to-role mapping configuration (map of route patterns to required roles)"
-  type        = map(string)
+  type        = map(list(string))
   default     = {}
 }
 

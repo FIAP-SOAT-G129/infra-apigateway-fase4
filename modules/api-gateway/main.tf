@@ -100,14 +100,14 @@ resource "aws_api_gateway_resource" "level_4" {
 
 # API Gateway Methods
 resource "aws_api_gateway_method" "methods" {
-  for_each = local.api_routes
+  for_each = var.api_routes
 
   rest_api_id = aws_api_gateway_rest_api.this.id
   resource_id = local.api_gateway_resources[each.value.path].id
   http_method = each.value.method
 
-  authorization = local.route_auth[each.key] != null ? "CUSTOM" : "NONE"
-  authorizer_id = local.route_auth[each.key] != null ? aws_api_gateway_authorizer.lambda_auth.id : null
+  authorization = length(local.route_auth[each.key]) > 0 ? "CUSTOM" : "NONE"
+  authorizer_id = length(local.route_auth[each.key]) > 0 ? aws_api_gateway_authorizer.lambda_auth.id : null
 
   request_parameters = {
     for param in each.value.path_params :
@@ -117,7 +117,7 @@ resource "aws_api_gateway_method" "methods" {
 
 # API Gateway Integrations (to ALB)
 resource "aws_api_gateway_integration" "integrations" {
-  for_each = local.api_routes
+  for_each = var.api_routes
 
   rest_api_id             = aws_api_gateway_rest_api.this.id
   resource_id             = local.api_gateway_resources[each.value.path].id
@@ -142,7 +142,7 @@ resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
   triggers = {
-    redeploy = sha1(jsonencode(local.api_routes))
+    redeploy = sha1(jsonencode(var.api_routes))
   }
 
   lifecycle {
