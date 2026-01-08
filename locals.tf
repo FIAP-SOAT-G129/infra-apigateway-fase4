@@ -5,7 +5,7 @@ locals {
       method      = "GET"
       path        = "v1/categories"
       alb_path    = "/v1/categories"
-      auth_roles  = ["employee"]
+      auth_roles  = []
       path_params = []
     }
 
@@ -13,7 +13,7 @@ locals {
       method      = "GET"
       path        = "v1/categories/{categoryId}"
       alb_path    = "/v1/categories/{categoryId}"
-      auth_roles  = ["employee"]
+      auth_roles  = []
       path_params = ["categoryId"]
     }
 
@@ -46,7 +46,7 @@ locals {
       method      = "GET"
       path        = "v1/products/category/{categoryId}"
       alb_path    = "/v1/products/category/{categoryId}"
-      auth_roles  = ["employee"]
+      auth_roles  = []
       path_params = ["categoryId"]
     }
 
@@ -54,7 +54,7 @@ locals {
       method      = "GET"
       path        = "v1/products/{productId}"
       alb_path    = "/v1/products/{productId}"
-      auth_roles  = ["employee", "customer"]
+      auth_roles  = []
       path_params = ["productId"]
     }
 
@@ -121,7 +121,7 @@ locals {
       method      = "GET"
       path        = "v1/orders/{orderId}"
       alb_path    = "/v1/orders/{orderId}"
-      auth_roles  = ["customer"]
+      auth_roles  = ["employee", "customer"]
       path_params = ["orderId"]
     }
 
@@ -162,7 +162,7 @@ locals {
       method      = "GET"
       path        = "v1/payments/{paymentId}"
       alb_path    = "/v1/payments/{paymentId}"
-      auth_roles  = ["customer"]
+      auth_roles  = ["employee", "customer"]
       path_params = ["paymentId"]
     }
 
@@ -170,7 +170,7 @@ locals {
       method      = "GET"
       path        = "v1/payments/orders/{orderId}"
       alb_path    = "/v1/payments/orders/{orderId}"
-      auth_roles  = ["customer"]
+      auth_roles  = ["employee", "customer"]
       path_params = ["orderId"]
     }
 
