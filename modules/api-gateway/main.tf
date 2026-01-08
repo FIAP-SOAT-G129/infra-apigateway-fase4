@@ -11,7 +11,7 @@ resource "aws_api_gateway_authorizer" "lambda_auth" {
   authorizer_uri                   = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${var.lambda_function_auth_arn}/invocations"
   type                             = "TOKEN"
   identity_source                  = "method.request.header.Authorization"
-  authorizer_result_ttl_in_seconds = 300
+  authorizer_result_ttl_in_seconds = 0
 }
 
 resource "aws_lambda_permission" "auth_permission" {
